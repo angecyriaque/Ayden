@@ -7747,7 +7747,7 @@ function showArticleDetails(id) {
             <button class="btn btn-warning" onclick="closeModal('venteDetailsModal'); editArticle('${art.id}')">
                 <i data-lucide="edit" style="width:14px; height:14px; margin-right:4px;"></i> Modifier
             </button>
-            <button class="btn btn-danger" onclick="closeModal('venteDetailsModal'); deleteArticleFromDetails('${art.id}')">
+            <button class="btn btn-danger" onclick="deleteArticleFromDetails('${art.id}')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
@@ -7862,7 +7862,7 @@ function showIntrantDetails(id) {
             <button class="btn btn-warning" onclick="closeModal('venteDetailsModal'); editIntrant('${intrant.id}')">
                 <i data-lucide="edit" style="width:14px; height:14px; margin-right:4px;"></i> Modifier
             </button>
-            <button class="btn btn-danger" onclick="closeModal('venteDetailsModal'); deleteIntrantFromDetails('${intrant.id}')">
+            <button class="btn btn-danger" onclick="deleteIntrantFromDetails('${intrant.id}')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
@@ -7946,7 +7946,7 @@ function showClientDetails(id) {
             <button class="btn btn-warning" onclick="closeModal('venteDetailsModal'); currentView = 'CLIENT'; editItem('${client.id}')">
                 <i data-lucide="edit" style="width:14px; height:14px; margin-right:4px;"></i> Modifier
             </button>
-            <button class="btn btn-danger" onclick="closeModal('venteDetailsModal'); deleteTiersFromDetails('${client.id}', 'CLIENT')">
+            <button class="btn btn-danger" onclick="deleteTiersFromDetails('${client.id}', 'CLIENT')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
@@ -8024,7 +8024,7 @@ function showSupplierDetails(id) {
             <button class="btn btn-warning" onclick="closeModal('venteDetailsModal'); currentView = 'FOURNISSEUR'; editItem('${supplier.id}')">
                 <i data-lucide="edit" style="width:14px; height:14px; margin-right:4px;"></i> Modifier
             </button>
-            <button class="btn btn-danger" onclick="closeModal('venteDetailsModal'); deleteTiersFromDetails('${supplier.id}', 'FOURNISSEUR')">
+            <button class="btn btn-danger" onclick="deleteTiersFromDetails('${supplier.id}', 'FOURNISSEUR')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
