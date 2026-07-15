@@ -363,8 +363,8 @@ function switchView(view) {
     // Update dynamic context action buttons
     if (view === 'DASHBOARD') {
         dynamicButtons.innerHTML = `
-            <button class="btn btn-primary" onclick="exportXLSXAll()">
-                <i data-lucide="download"></i> Export global Excel
+            <button class="btn btn-success" onclick="exportDashboardPDF()">
+                <i data-lucide="file-text"></i> Exporter en PDF
             </button>
         `;
     } else if (view === 'CLIENT') {
@@ -550,7 +550,7 @@ function render(data) {
                         ` : ''}
                     </div>
                     <div class="card-actions" style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px; display:flex; justify-content:flex-end;">
-                        <button class="btn btn-secondary btn-small" style="display:flex; align-items:center; gap:4px; font-size:0.75rem; padding: 4px 8px;" onclick="event.stopPropagation(); currentView = '${isClient ? 'CLIENT' : 'FOURNISSEUR'}'; editItem('${item.id}')">
+                        <button class="btn btn-warning btn-small" style="display:flex; align-items:center; gap:4px; font-size:0.75rem; padding: 4px 8px;" onclick="event.stopPropagation(); currentView = '${isClient ? 'CLIENT' : 'FOURNISSEUR'}'; editItem('${item.id}')">
                             <i data-lucide="edit-2" style="width:12px; height:12px;"></i> Modifier
                         </button>
                     </div>
@@ -2328,6 +2328,9 @@ function openAddForm() {
     
     formStatus.parentElement.style.display = 'flex';
     
+    const submitBtn = document.querySelector('#mainForm button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = "Enregistrer";
+    
     toggleLimitField();
     openModal('formModal');
 }
@@ -2358,6 +2361,8 @@ function editItem(id) {
     }
     
     document.getElementById('modalTitle').textContent = item.name;
+    const submitBtn = document.querySelector('#mainForm button[type="submit"]');
+    if (submitBtn) submitBtn.textContent = "Modifier";
 }
 
 function handleSubmit(e) {
@@ -2613,7 +2618,7 @@ function editArticle(id) {
     const deleteBtn = document.getElementById('btnDeleteArticle');
     if (deleteBtn) deleteBtn.style.display = 'inline-flex';
     const adminSec = document.getElementById('artAdminCodeSection');
-    if (adminSec) adminSec.style.display = 'block';
+    if (adminSec) adminSec.style.display = 'none';
     const adminInput = document.getElementById('artAdminCodeInput');
     if (adminInput) adminInput.value = "";
     
@@ -2637,14 +2642,7 @@ function handleArticleSubmit(e) {
     e.preventDefault();
     const editId = document.getElementById('editArticleId').value;
     
-    if (editId) {
-        // Validate admin code for modification
-        const code = document.getElementById('artAdminCodeInput').value.toUpperCase().trim();
-        const adminUser = db.USER.find(u => u.id === code && u.status === 'Actif' && u.role === 'Administrateur');
-        if (code !== ADMIN_CODE && !adminUser) {
-            return showToast("Code de sécurité incorrect", true);
-        }
-    }
+    // Code security verification removed for fluid modification
     
     let payload = {
         name: document.getElementById('artName').value.trim(),
@@ -2798,7 +2796,9 @@ function renderIntrants(container, data) {
                         <span>${item.family}</span>
                     </div>
                     ${(() => {
-                        const supplierStocksHtml = Object.entries(item.supplierStocks || {}).map(([sId, qty]) => {
+                        const supplierStocksHtml = Object.entries(item.supplierStocks || {})
+                            .filter(([sId, qty]) => qty > 0)
+                            .map(([sId, qty]) => {
                             const supplier = db.FOURNISSEUR.find(f => f.id === sId);
                             const name = supplier ? supplier.name : 'Fournisseur inconnu';
                             return `
@@ -2817,7 +2817,7 @@ function renderIntrants(container, data) {
                     })()}
                 </div>
                 <div class="card-actions" style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:10px; display:flex; justify-content:flex-end;">
-                    <button class="btn btn-secondary btn-small" style="display:flex; align-items:center; gap:4px; font-size:0.75rem; padding: 4px 8px;" onclick="event.stopPropagation(); editIntrant('${item.id}')">
+                    <button class="btn btn-warning btn-small" style="display:flex; align-items:center; gap:4px; font-size:0.75rem; padding: 4px 8px;" onclick="event.stopPropagation(); editIntrant('${item.id}')">
                         <i data-lucide="edit-2" style="width:12px; height:12px;"></i> Modifier
                     </button>
                 </div>
@@ -2906,9 +2906,9 @@ function editIntrant(id) {
         if (listContainer) {
             listContainer.innerHTML = '';
             
-            // For each supplier, render their stock of this intrant
             db.FOURNISSEUR.forEach(f => {
                 const qty = item.supplierStocks ? (item.supplierStocks[f.id] || 0) : 0;
+                if (qty <= 0) return; // Supprimer les lignes de Fournisseurs qui ont un stock à 0
                 
                 const row = document.createElement('div');
                 row.style.display = 'flex';
@@ -2932,7 +2932,7 @@ function editIntrant(id) {
     const deleteBtn = document.getElementById('btnDeleteIntrant');
     if (deleteBtn) deleteBtn.style.display = 'inline-flex';
     const adminSec = document.getElementById('intAdminCodeSection');
-    if (adminSec) adminSec.style.display = 'block';
+    if (adminSec) adminSec.style.display = 'none';
     const adminInput = document.getElementById('intAdminCodeInput');
     if (adminInput) adminInput.value = "";
     
@@ -2964,14 +2964,7 @@ function handleIntrantSubmit(e) {
     e.preventDefault();
     const editId = document.getElementById('editIntrantId').value;
     
-    if (editId) {
-        // Validate admin code for modification
-        const code = document.getElementById('intAdminCodeInput').value.toUpperCase().trim();
-        const adminUser = db.USER.find(u => u.id === code && u.status === 'Actif' && u.role === 'Administrateur');
-        if (code !== ADMIN_CODE && !adminUser) {
-            return showToast("Code de sécurité incorrect", true);
-        }
-    }
+    // Code security verification removed for fluid modification
     
     let payload = {
         name: document.getElementById('intName').value.trim(),
@@ -3150,12 +3143,14 @@ function openProductionForm() {
 
 function handleProductionSubmit(e) {
     e.preventDefault();
+    const pId = document.getElementById('prodId').value;
+    const existingIdx = db.PRODUCTION.findIndex(x => x.id === pId);
+    
     const articleId = document.getElementById('prodArticleSelect').value;
     const qty = parseFloat(document.getElementById('prodQty').value) || 0;
     const date = document.getElementById('prodDate').value;
     const manager = document.getElementById('prodManager').value.trim();
     const enclosure = document.getElementById('prodEnclosureSelect').value;
-    const pId = document.getElementById('prodId').value;
     
     if (!articleId || qty <= 0 || !date || !manager || !enclosure) {
         return showToast("Veuillez remplir tous les champs obligatoires", true);
@@ -3218,7 +3213,7 @@ function handleProductionSubmit(e) {
         }
     }
     
-    const existingIdx = db.PRODUCTION.findIndex(x => x.id === pId);
+    // existingIdx already declared above
     let currentStatus = "En attente";
     if (existingIdx !== -1) {
         currentStatus = db.PRODUCTION[existingIdx].status;
@@ -3273,7 +3268,7 @@ function handleProductionSubmit(e) {
             }],
             initialQty: qty,
             transferredQty: 0,
-            expenses: []
+            expenses: expenses
         });
         showToast(`Ordre de production créé : ${pId} (En attente)`);
     }
@@ -3450,9 +3445,82 @@ function addProductionExpenseRow(data = null) {
     
     container.appendChild(div);
     
+    const intrantSelect = div.querySelector('.exp-intrant');
+    const supplierSelect = div.querySelector('.exp-supplier');
+    
+    function updateSuppliers() {
+        const selectedIntrantId = intrantSelect.value;
+        const currentSupplierVal = supplierSelect.value;
+        
+        supplierSelect.innerHTML = '<option value="">-- Choisir --</option>';
+        
+        if (selectedIntrantId) {
+            const intrant = db.INTRANT.find(i => i.id === selectedIntrantId);
+            if (intrant && intrant.supplierStocks) {
+                db.FOURNISSEUR.forEach(f => {
+                    const qty = intrant.supplierStocks[f.id] || 0;
+                    if (qty > 0 || f.id === currentSupplierVal || (data && f.id === data.supplierId)) {
+                        const opt = document.createElement('option');
+                        opt.value = f.id;
+                        opt.textContent = `${f.name} (Dispo: ${qty.toLocaleString()})`;
+                        supplierSelect.appendChild(opt);
+                    }
+                });
+            }
+        } else {
+            db.FOURNISSEUR.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.name;
+                supplierSelect.appendChild(opt);
+            });
+        }
+        
+        if (Array.from(supplierSelect.options).some(opt => opt.value === currentSupplierVal)) {
+            supplierSelect.value = currentSupplierVal;
+        }
+    }
+    
+    function updateIntrants() {
+        const selectedSupplierId = supplierSelect.value;
+        const currentIntrantVal = intrantSelect.value;
+        
+        intrantSelect.innerHTML = '<option value="">-- Choisir --</option>';
+        
+        if (selectedSupplierId) {
+            db.INTRANT.forEach(i => {
+                const qty = i.supplierStocks ? (i.supplierStocks[selectedSupplierId] || 0) : 0;
+                if (qty > 0 || i.id === currentIntrantVal || (data && i.id === data.intrantId)) {
+                    const opt = document.createElement('option');
+                    opt.value = i.id;
+                    opt.setAttribute('data-price', i.price);
+                    opt.textContent = `${i.name} (Dispo: ${qty.toLocaleString()})`;
+                    intrantSelect.appendChild(opt);
+                }
+            });
+        } else {
+            db.INTRANT.forEach(i => {
+                const opt = document.createElement('option');
+                opt.value = i.id;
+                opt.setAttribute('data-price', i.price);
+                opt.textContent = `${i.name} (Stock: ${i.stock.toLocaleString()})`;
+                intrantSelect.appendChild(opt);
+            });
+        }
+        
+        if (Array.from(intrantSelect.options).some(opt => opt.value === currentIntrantVal)) {
+            intrantSelect.value = currentIntrantVal;
+        }
+    }
+    
+    intrantSelect.addEventListener('change', updateSuppliers);
+    supplierSelect.addEventListener('change', updateIntrants);
+    
     if (data) {
-        div.querySelector('.exp-intrant').value = data.intrantId;
-        div.querySelector('.exp-supplier').value = data.supplierId;
+        intrantSelect.value = data.intrantId;
+        updateSuppliers();
+        supplierSelect.value = data.supplierId;
+        updateIntrants();
     }
     
     lucide.createIcons();
@@ -4796,9 +4864,20 @@ function saveAndSendVente() {
     // Download PDF for this sale
     downloadVentePDF(saleId);
     
+    // Launch Outlook with prefilled email
+    const email = tiers ? (tiers.email || '') : '';
+    const subject = encodeURIComponent(`${type} N° ${factNum} - AYDEN`);
+    const body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le document ${type} N° ${factNum} au format PDF.\n\nCordialement,\nAYDEN Corporate`);
+    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoUrl;
+    
     closeModal('saleModal');
     switchView('VENTE');
     showToast(editId ? "Vente mise à jour !" : `${type} enregistré avec succès ! PDF téléchargé.`);
+}
+
+function saveAndSend() {
+    saveAndSendVente();
 }
 
 // --- PURCHASES & ORDERS MANAGEMENT ---
@@ -5209,7 +5288,15 @@ function saveAndSendAchat() {
     
     // Download PDF for both quote and order
     downloadAchatPDF(achatId);
-        closeModal('achatModal');
+    
+    // Launch Outlook with prefilled email
+    const email = supplier ? (supplier.email || '') : '';
+    const subject = encodeURIComponent(`${isQuote ? 'Devis d\'Achat' : 'Bon de Commande'} N° ${factNum} - AYDEN`);
+    const body = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint le document ${isQuote ? 'Devis d\'Achat' : 'Bon de Commande'} N° ${factNum} au format PDF.\n\nCordialement,\nAYDEN Corporate`);
+    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoUrl;
+    
+    closeModal('achatModal');
     switchView('ACHAT');
     showToast(editId ? "Achat mis à jour !" : "Achat enregistré avec succès ! PDF téléchargé.");
 }
@@ -5978,7 +6065,7 @@ function renderAchats(container, data) {
                                     <div class="actions-cell">
                                         <button class="btn btn-secondary btn-small" onclick="${detailsAction}">Détails</button>
                                         ${!a.isProdExpense ? `
-                                            <button class="btn btn-success btn-small" onclick="downloadAchatPDF('${a.id}')" title="Télécharger PDF">
+                                            <button class="btn btn-secondary btn-small" onclick="downloadAchatPDF('${a.id}')" title="Télécharger PDF" style="display:inline-flex; align-items:center; gap:4px;">
                                                 <i data-lucide="download" style="width:12px;height:12px;"></i> PDF
                                             </button>
                                         ` : ''}
@@ -7153,7 +7240,7 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
         confirmSection.remove();
     }
     
-    // Create new confirm section
+    // Create new confirm section without code input (cues of admin code removed)
     confirmSection = document.createElement('div');
     confirmSection.className = 'inline-delete-confirm';
     confirmSection.innerHTML = `
@@ -7161,16 +7248,11 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
             <i data-lucide="alert-triangle" style="width:18px; height:18px; flex-shrink:0;"></i>
             <div>${warningMessage}</div>
         </div>
-        <div class="inline-delete-confirm-body">
-            <span class="inline-delete-confirm-label">
-                Saisir votre code de sécurité pour valider la suppression :
-            </span>
-            <div class="inline-delete-confirm-row">
-                <input type="password" id="inlineDeleteUserCode" class="inline-delete-confirm-input" placeholder="Saisir le code de sécurité">
-                <button type="button" class="btn btn-danger" id="btnConfirmInlineDelete">
-                    <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Confirmer la suppression
-                </button>
-            </div>
+        <div class="inline-delete-confirm-body" style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+            <button type="button" class="btn btn-secondary btn-small" id="btnCancelInlineDelete">Annuler</button>
+            <button type="button" class="btn btn-danger btn-small" id="btnConfirmInlineDelete">
+                <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Confirmer la suppression
+            </button>
         </div>
     `;
     
@@ -7183,39 +7265,18 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
         if (card) card.appendChild(confirmSection);
     }
     
-    // Focus the input field and handle Enter key
-    const input = document.getElementById('inlineDeleteUserCode');
-    if (input) {
-        input.focus();
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                const confirmBtn = document.getElementById('btnConfirmInlineDelete');
-                if (confirmBtn) confirmBtn.click();
-            }
-        });
+    const cancelBtn = document.getElementById('btnCancelInlineDelete');
+    if (cancelBtn) {
+        cancelBtn.onclick = () => {
+            confirmSection.remove();
+        };
     }
     
-    // Bind click event
     const confirmBtn = document.getElementById('btnConfirmInlineDelete');
     if (confirmBtn) {
         confirmBtn.onclick = () => {
-            const code = input.value.toUpperCase().trim();
-            if (!code) {
-                showToast("Veuillez saisir un code de sécurité", true);
-                return;
-            }
-            
-            // Check in db.USER or match global admin code
-            const user = db.USER.find(u => u.id === code && u.status === 'Actif' && u.role === 'Administrateur');
-            if (code !== ADMIN_CODE && !user) {
-                showToast("Code de sécurité invalide ou inactif. Suppression annulée.", true);
-                return;
-            }
-            
             confirmSection.remove();
-            onConfirm(code);
+            onConfirm();
         };
     }
     
@@ -7506,6 +7567,70 @@ function downloadVentePDF(id) {
     
     html2pdf().from(tempDiv).set(opt).save().then(() => {
         document.body.removeChild(tempDiv);
+    });
+}
+
+function exportDashboardPDF() {
+    const mainGrid = document.getElementById('mainGrid');
+    if (!mainGrid) return;
+    
+    showToast("Génération du PDF du Tableau de Bord...");
+    
+    const periodEl = document.getElementById('dashboardPeriodSelect');
+    const rubriqueEl = document.getElementById('dashboardRubriqueSelect');
+    const periodText = periodEl ? periodEl.options[periodEl.selectedIndex].text : "Tout l'historique";
+    const rubriqueText = rubriqueEl ? rubriqueEl.options[rubriqueEl.selectedIndex].text : "Finances & Trésorerie";
+    
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'dashboard-pdf-header';
+    headerDiv.style.cssText = `
+        background-color: #1e3a8a;
+        color: #ffffff;
+        padding: 20px;
+        border-radius: var(--radius-md);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: 'Outfit', sans-serif;
+    `;
+    
+    headerDiv.innerHTML = `
+        <div>
+            <h1 style="margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: 0.5px;">AYDEN - TABLEAU DE BORD</h1>
+            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">Rubrique : <strong>${rubriqueText}</strong></p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">Période : <strong>${periodText}</strong></p>
+            <p style="margin: 5px 0 0 0; font-size: 0.75rem; opacity: 0.7;">Généré le : ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</p>
+        </div>
+    `;
+    
+    mainGrid.insertBefore(headerDiv, mainGrid.firstChild);
+    
+    const opt = {
+        margin:       10,
+        filename:     `Tableau_de_Bord_${rubriqueText.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false,
+            backgroundColor: '#f8fafc' 
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    
+    html2pdf().from(mainGrid).set(opt).save().then(() => {
+        mainGrid.removeChild(headerDiv);
+        showToast("Tableau de Bord exporté avec succès !");
+    }).catch(err => {
+        if (mainGrid.contains(headerDiv)) {
+            mainGrid.removeChild(headerDiv);
+        }
+        showToast("Erreur lors de l'export PDF", true);
+        console.error(err);
     });
 }
 
@@ -7830,7 +7955,9 @@ function showIntrantDetails(id) {
             <div class="details-section-title">Stock par Fournisseur</div>
             <div class="details-data-grid">
                 ${(() => {
-                    const supplierStocksHtml = Object.entries(intrant.supplierStocks || {}).map(([sId, qty]) => {
+                    const supplierStocksHtml = Object.entries(intrant.supplierStocks || {})
+                        .filter(([sId, qty]) => qty > 0)
+                        .map(([sId, qty]) => {
                         const supplier = db.FOURNISSEUR.find(f => f.id === sId);
                         const name = supplier ? supplier.name : 'Fournisseur inconnu';
                         return `
