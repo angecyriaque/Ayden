@@ -5636,9 +5636,6 @@ function showAchatDetails(id, fromFinance = false) {
                     <i data-lucide="dollar-sign" style="width:14px; height:14px; margin-right:4px;"></i> Enregistrer Règlement
                 </button>
             ` : ''}
-            <button class="btn btn-success" onclick="downloadAchatPDF('${a.id}')">
-                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
-            </button>
             ${(!fromFinance && isQuote) ? `
                 <button class="btn btn-warning" onclick="closeModal('venteDetailsModal'); editAchat('${a.id}')">
                     <i data-lucide="edit" style="width:14px; height:14px; margin-right:4px;"></i> Modifier
@@ -7243,7 +7240,7 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
         confirmSection.remove();
     }
     
-    // Create new confirm section without code input (cues of admin code removed)
+    // Create new confirm section with security code input but WITHOUT hints (no default code shown)
     confirmSection = document.createElement('div');
     confirmSection.className = 'inline-delete-confirm';
     confirmSection.innerHTML = `
@@ -7251,11 +7248,17 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
             <i data-lucide="alert-triangle" style="width:18px; height:18px; flex-shrink:0;"></i>
             <div>${warningMessage}</div>
         </div>
-        <div class="inline-delete-confirm-body" style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
-            <button type="button" class="btn btn-secondary btn-small" id="btnCancelInlineDelete">Annuler</button>
-            <button type="button" class="btn btn-danger btn-small" id="btnConfirmInlineDelete">
-                <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Confirmer la suppression
-            </button>
+        <div class="inline-delete-confirm-body" style="margin-top:10px;">
+            <div style="font-size:0.8rem; margin-bottom:6px; font-weight:600; color:var(--text-muted);">
+                Saisir le code de sécurité pour valider la suppression :
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="password" id="inlineDeleteUserCode" style="padding:6px 12px; font-size:0.85rem; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-body); color:var(--text-main); flex:1;" placeholder="Code de sécurité">
+                <button type="button" class="btn btn-secondary btn-small" id="btnCancelInlineDelete">Annuler</button>
+                <button type="button" class="btn btn-danger btn-small" id="btnConfirmInlineDelete">
+                    <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Confirmer la suppression
+                </button>
+            </div>
         </div>
     `;
     
@@ -7268,6 +7271,19 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
         if (card) card.appendChild(confirmSection);
     }
     
+    const input = document.getElementById('inlineDeleteUserCode');
+    if (input) {
+        input.focus();
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                const confirmBtn = document.getElementById('btnConfirmInlineDelete');
+                if (confirmBtn) confirmBtn.click();
+            }
+        });
+    }
+    
     const cancelBtn = document.getElementById('btnCancelInlineDelete');
     if (cancelBtn) {
         cancelBtn.onclick = () => {
@@ -7278,8 +7294,21 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
     const confirmBtn = document.getElementById('btnConfirmInlineDelete');
     if (confirmBtn) {
         confirmBtn.onclick = () => {
+            const code = input.value.toUpperCase().trim();
+            if (!code) {
+                showToast("Veuillez saisir le code de sécurité", true);
+                return;
+            }
+            
+            // Check global ADMIN_CODE (ICONIC) or active admin user
+            const user = db.USER.find(u => u.id === code && u.status === 'Actif' && u.role === 'Administrateur');
+            if (code !== ADMIN_CODE && !user) {
+                showToast("Code de sécurité incorrect. Suppression annulée.", true);
+                return;
+            }
+            
             confirmSection.remove();
-            onConfirm();
+            onConfirm(code);
         };
     }
     
