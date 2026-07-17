@@ -4221,6 +4221,9 @@ function showProductionDetails(id) {
             <button class="btn btn-danger" onclick="deleteProduction('${p.id}')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
+            <button class="btn btn-success" onclick="downloadElementDetailsPDF('PRODUCTION', '${p.id}')">
+                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
+            </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
         </div>
     `;
@@ -7284,6 +7287,76 @@ function showInlineDeleteConfirm(modalId, warningMessage, onConfirm) {
     lucide.createIcons();
 }
 
+function downloadElementDetailsPDF(type, id) {
+    const originalContent = document.getElementById('venteDetailsContent');
+    if (!originalContent) return;
+    
+    showToast("Génération du PDF en cours...");
+    
+    // Clone the details container
+    const clone = originalContent.cloneNode(true);
+    
+    // Remove close button
+    const closeBtn = clone.querySelector('.close-btn');
+    if (closeBtn) closeBtn.remove();
+    
+    // Remove bottom action buttons (typically the last element child containing buttons)
+    const lastChild = clone.lastElementChild;
+    if (lastChild && lastChild.querySelector('button')) {
+        lastChild.remove();
+    }
+    
+    // Also remove inline delete confirmation if active
+    const inlineDelete = clone.querySelector('.inline-delete-confirm');
+    if (inlineDelete) inlineDelete.remove();
+    
+    // Create container for PDF printing
+    const pdfContainer = document.createElement('div');
+    pdfContainer.style.padding = '30px';
+    pdfContainer.style.background = '#ffffff';
+    pdfContainer.style.color = '#1f2937';
+    pdfContainer.style.fontFamily = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    
+    // Add header branding to look professional
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.borderBottom = '2px solid #3b82f6';
+    header.style.paddingBottom = '15px';
+    header.style.marginBottom = '25px';
+    header.innerHTML = `
+        <div>
+            <h1 style="margin:0; font-size:24px; color:#1e3a8a;">AYDEN</h1>
+            <p style="margin:5px 0 0 0; font-size:12px; color:#6b7280;">Détails de la fiche ${type.toLowerCase()} - Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+        </div>
+        <div style="text-align:right;">
+            <p style="margin:0; font-size:14px; font-weight:bold; color:#1e3a8a;">Référence: ${id}</p>
+        </div>
+    `;
+    pdfContainer.appendChild(header);
+    
+    // Inject the cloned content
+    pdfContainer.appendChild(clone);
+    
+    // Configure html2pdf options
+    const opt = {
+        margin:       10,
+        filename:     `details_${type.toLowerCase()}_${id}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Execute PDF download
+    html2pdf().from(pdfContainer).set(opt).save().then(() => {
+        showToast("PDF téléchargé avec succès !");
+    }).catch(err => {
+        console.error("PDF generation error:", err);
+        showToast("Erreur lors de la génération du PDF", true);
+    });
+}
+
 // --- FILTERING & SEARCH SEARCH ---
 function filterData() {
     const qName = document.getElementById('searchNameInput').value.toLowerCase().trim();
@@ -7875,6 +7948,9 @@ function showArticleDetails(id) {
             <button class="btn btn-danger" onclick="deleteArticleFromDetails('${art.id}')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
+            <button class="btn btn-success" onclick="downloadElementDetailsPDF('ARTICLE', '${art.id}')">
+                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
+            </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
         </div>
     `;
@@ -7992,6 +8068,9 @@ function showIntrantDetails(id) {
             <button class="btn btn-danger" onclick="deleteIntrantFromDetails('${intrant.id}')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
+            <button class="btn btn-success" onclick="downloadElementDetailsPDF('INTRANT', '${intrant.id}')">
+                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
+            </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
         </div>
     `;
@@ -8076,6 +8155,9 @@ function showClientDetails(id) {
             <button class="btn btn-danger" onclick="deleteTiersFromDetails('${client.id}', 'CLIENT')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
             </button>
+            <button class="btn btn-success" onclick="downloadElementDetailsPDF('CLIENT', '${client.id}')">
+                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
+            </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
         </div>
     `;
@@ -8153,6 +8235,9 @@ function showSupplierDetails(id) {
             </button>
             <button class="btn btn-danger" onclick="deleteTiersFromDetails('${supplier.id}', 'FOURNISSEUR')">
                 <i data-lucide="trash-2" style="width:14px; height:14px; margin-right:4px;"></i> Supprimer
+            </button>
+            <button class="btn btn-success" onclick="downloadElementDetailsPDF('FOURNISSEUR', '${supplier.id}')">
+                <i data-lucide="file-text" style="width:14px; height:14px; margin-right:4px;"></i> PDF
             </button>
             <button class="btn btn-primary" onclick="closeModal('venteDetailsModal')">Fermer</button>
         </div>
